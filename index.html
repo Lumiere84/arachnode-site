@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ARACHNODE</title>
+<meta name="description" content="The defensive web for AI agents.">
+<style>
+/* Layout: a fixed gold-web / neon-purple vortex canvas behind a scrolling column.
+   Committed single dark world. No external libraries — the vortex is Canvas 2D. */
+:root{
+  --bg:#06040a;            /* near-black, faint violet */
+  --bg-2:#0c0916;
+  --fg:#f4eede;            /* warm gold-white */
+  --muted:rgba(244,238,222,.60);
+  --faint:rgba(244,238,222,.34);
+  --gold:#e9b949;
+  --gold-bright:#f7d47a;
+  --purple:#a24bff;        /* neon purple glow / signal */
+  --purple-bright:#c88dff;
+  --safe:#43e0a0;
+  --threat:#ff5566;
+  --line:rgba(162,75,255,.22);
+  --panel:rgba(14,9,22,.74);
+  color-scheme:dark;
+  --f-display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body)}
+body{-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:rgba(162,75,255,.4);color:#fff}
+
+/* The vortex canvas lives INSIDE the hero and scrolls away with it: the page
+   reads as a sequence — headline, then the spinning web in its own space,
+   then the manifesto. */
+#web{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none}
+.stage>*{position:relative;z-index:1}
+.stage>.scrollcue{position:absolute}
+.orbit{width:100%;flex:0 0 auto;height:min(76vh,720px,100vw);pointer-events:none}
+#grain,#vignette{position:fixed;inset:0;z-index:1;pointer-events:none}
+#vignette{background:radial-gradient(130% 120% at 50% 42%,transparent 40%,rgba(0,0,0,.6) 100%)}
+#grain{opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+
+.wrap{position:relative;z-index:2;width:100%}
+header.nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:5;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px clamp(16px,4vw,40px);pointer-events:none}
+header.nav>*{pointer-events:auto}
+.brand{font-family:var(--f-display);font-weight:600;letter-spacing:.32em;font-size:14px;color:var(--gold-bright)}
+.brand .dot{color:var(--purple-bright)}
+.navright{display:flex;align-items:center;gap:16px}
+.chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--purple-bright);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;white-space:nowrap;
+  background:rgba(162,75,255,.07);backdrop-filter:blur(6px)}
+.chip .pip{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);
+  margin-right:7px;vertical-align:middle;box-shadow:0 0 8px var(--purple-bright)}
+.enter{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--fg);border:1px solid rgba(244,238,222,.22);border-radius:999px;
+  padding:8px 16px;transition:border-color .3s,background .3s,box-shadow .3s;white-space:nowrap}
+.enter:hover{border-color:var(--purple);background:rgba(162,75,255,.12);box-shadow:0 0 24px rgba(162,75,255,.3)}
+@media(max-width:560px){.enter.long{display:none}}
+
+.stage{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;
+  text-align:center;padding:clamp(104px,15vh,172px) clamp(16px,5vw,40px) 64px;position:relative}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.42em;text-transform:uppercase;
+  color:var(--purple-bright);margin:0 0 18px}
+h1.hero{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;
+  font-size:clamp(2.1rem,6.4vw,4.6rem);line-height:1.02;letter-spacing:-.01em;
+  text-shadow:0 0 50px rgba(162,75,255,.35)}
+h1.hero em{font-style:normal;color:var(--gold-bright)}
+.instruction{font-family:var(--f-mono);font-size:13px;letter-spacing:.12em;color:var(--muted);
+  margin-top:26px;min-height:20px;transition:opacity .4s}
+.hint{margin-top:8px;font-size:11px;color:var(--faint);font-family:var(--f-mono);letter-spacing:.1em}
+
+.scrollcue{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-family:var(--f-mono);
+  font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--faint);
+  animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(5px);opacity:.85}}
+@media(prefers-reduced-motion:reduce){.scrollcue{animation:none}}
+.slot{margin-top:6px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:560px}
+.choices{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  color:var(--fg);background:rgba(162,75,255,.1);border:1px solid var(--line);border-radius:10px;
+  padding:14px 20px;transition:transform .2s,border-color .3s,background .3s,box-shadow .3s}
+.btn:hover{transform:translateY(-1px);border-color:var(--purple);box-shadow:0 0 28px rgba(162,75,255,.35)}
+.btn.primary{background:linear-gradient(180deg,rgba(233,185,73,.26),rgba(162,75,255,.14));
+  border-color:var(--gold);color:#fff}
+.btn.sub{opacity:.72}
+.btn:focus-visible,.enter:focus-visible,a:focus-visible,.copybtn:focus-visible{outline:2px solid var(--purple-bright);outline-offset:3px}
+
+#tip{position:fixed;z-index:4;pointer-events:none;opacity:0;transform:translate(-50%,-140%);
+  transition:opacity .18s;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;max-width:230px;
+  backdrop-filter:blur(8px);text-align:left;line-height:1.5}
+#tip b{color:var(--gold-bright);font-weight:600;display:block;letter-spacing:.14em;margin-bottom:3px}
+#tip span{color:var(--muted)}
+
+.incident{font-family:var(--f-mono);text-align:left;width:100%;max-width:440px;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;backdrop-filter:blur(10px)}
+.incident h4{margin:0 0 12px;font-size:12px;letter-spacing:.24em;color:var(--safe);font-weight:600}
+.incident .row{display:flex;justify-content:space-between;gap:14px;font-size:12px;padding:5px 0;
+  border-bottom:1px solid rgba(244,238,222,.07);opacity:0;transform:translateY(4px);transition:opacity .4s,transform .4s}
+.incident .row.in{opacity:1;transform:none}
+.incident .row span:first-child{color:var(--faint)}
+.incident .row span:last-child{color:var(--fg);text-align:right}
+
+section.band{position:relative;padding:clamp(72px,12vh,140px) clamp(16px,5vw,40px);max-width:1120px;margin:0 auto}
+.scrim{background:linear-gradient(180deg,transparent,rgba(6,4,10,.8) 16%,rgba(6,4,10,.88) 84%,transparent)}
+.kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--purple-bright);margin:0 0 20px}
+h2{font-family:var(--f-display);font-weight:600;font-size:clamp(1.7rem,4vw,2.8rem);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2 em{font-style:normal;color:var(--gold-bright)}
+.lead{font-size:clamp(1.05rem,2vw,1.3rem);line-height:1.6;color:var(--muted);max-width:60ch;margin:22px 0 0}
+p.body{font-size:1rem;line-height:1.7;color:var(--muted);max-width:62ch}
+p.body em{font-style:normal;color:var(--gold-bright)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;margin-top:48px;
+  background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.cap{background:var(--bg);padding:26px 24px;min-width:0;transition:background .3s}
+.cap:hover{background:var(--bg-2)}
+.cap .idx{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;color:var(--gold)}
+.cap h3{font-family:var(--f-display);font-weight:600;font-size:1.15rem;margin:14px 0 8px}
+.cap p{font-size:.92rem;line-height:1.6;color:var(--muted);margin:0}
+
+.pipe{display:flex;flex-wrap:wrap;gap:12px;margin-top:44px;align-items:stretch}
+.stageit{flex:1 1 150px;min-width:0;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:18px 16px}
+.stageit .n{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--gold)}
+.stageit h4{font-family:var(--f-display);font-weight:600;margin:10px 0 6px;font-size:1rem}
+.stageit p{font-size:.84rem;line-height:1.5;color:var(--muted);margin:0}
+.rule{color:var(--purple-bright);font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;
+  margin-top:40px;padding:20px 22px;border-left:2px solid var(--gold);background:rgba(162,75,255,.07);
+  border-radius:0 10px 10px 0;line-height:1.6;max-width:70ch}
+
+.proof{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:28px;margin-top:44px}
+.proof div{min-width:0}
+.proof .big{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.2vw,2.1rem);color:var(--gold-bright)}
+.proof .lbl{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);margin-top:8px;line-height:1.5}
+
+.final{text-align:center}
+.final h2{font-size:clamp(1.9rem,4.6vw,3.2rem)}
+.final .statement{font-family:var(--f-mono);letter-spacing:.08em;color:var(--purple-bright);
+  font-size:clamp(.95rem,2vw,1.15rem);line-height:1.8;margin:0 auto 36px;max-width:40ch;text-transform:uppercase}
+.finalbtns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+footer{border-top:1px solid var(--line);margin-top:80px;padding:34px clamp(16px,5vw,40px);
+  display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:space-between;align-items:center;
+  font-family:var(--f-mono);font-size:12px;color:var(--faint);letter-spacing:.06em}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--gold-bright)}
+.copyrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.copybtn{cursor:pointer;background:none;border:1px solid var(--line);color:var(--muted);
+  border-radius:6px;padding:4px 9px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em}
+.copybtn:hover{border-color:var(--gold);color:var(--gold-bright)}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="tip"></div>
+
+<div class="wrap">
+  <header class="nav">
+    <div class="brand">ARACHNODE<span class="dot">.</span></div>
+    <div class="navright">
+      <div class="chip"><span class="pip"></span><span id="statustext">SYSTEM: DORMANT</span></div>
+      <a class="enter long" href="https://arachnode.onrender.com" target="_blank" rel="noopener">Enter the Control Plane</a>
+    </div>
+  </header>
+
+  <section class="stage" id="stage">
+    <canvas id="web" aria-hidden="true"></canvas>
+    <video id="vortexvid" muted loop playsinline autoplay preload="auto" aria-hidden="true" style="display:none"><source src="vortex.webm" type="video/webm"><source src="vortex.mp4" type="video/mp4"></video>
+    <p class="eyebrow">The defensive web for AI agents</p>
+    <h1 class="hero">THE DEFENSIVE WEB<br>IS <em>LISTENING.</em></h1>
+    <p class="instruction" id="instruction">Move through the field.</p>
+    <p class="hint" id="hint">Move your cursor across the web &middot; tap and drag on touch</p>
+    <div class="orbit" id="orbit" aria-hidden="true"></div>
+    <div class="slot" id="slot"></div>
+    <div class="scrollcue" aria-hidden="true">scroll &#8595;</div>
+  </section>
+
+  <div class="scrim">
+    <section class="band">
+      <p class="kicker">Manifesto</p>
+      <h2>You own the web. The attacker is the <em>fly.</em></h2>
+      <p class="lead">AI agents read data, call tools, move money and change infrastructure &mdash; often with all-or-nothing permissions and no record anyone trusts afterward. ARACHNODE is the control plane that sits between every agent and every action it tries to take: it verifies who is acting, decides whether the action is allowed, and keeps a tamper-evident record of what happened.</p>
+      <p class="body" style="margin-top:28px">The metaphor is literal. You are the spider; your web <em>is</em> the control plane. Each strand is a governed connection. A vibration on the strand is telemetry. When a rogue agent touches the web, the whole structure feels it &mdash; it is lured down a false strand, and the trapdoor closes over it.</p>
+    </section>
+
+    <section class="band">
+      <p class="kicker">Capabilities</p>
+      <h2>Six strands, one control plane.</h2>
+      <div class="grid" id="capgrid"></div>
+    </section>
+
+    <section class="band">
+      <p class="kicker">The system</p>
+      <h2>Every action passes through the whole web, in order.</h2>
+      <p class="lead">ARACHNODE is the enforcement layer of a larger defensive system. Identity, decision, enforcement and verification each have one job, and no single part can force a dangerous action through.</p>
+      <div class="pipe" id="pipe"></div>
+      <div class="rule">A trusted identity never overrides a dangerous action. Clear intent never overrides critical impact. A verifier mismatch forces Safe-Hold no matter who approved it.</div>
+    </section>
+
+    <section class="band">
+      <p class="kicker">Proof</p>
+      <h2>What the experience you just ran actually maps to.</h2>
+      <div class="proof" id="proof"></div>
+    </section>
+
+    <section class="band final">
+      <p class="kicker" style="text-align:center">Enter the control plane</p>
+      <h2>Authority, made explicit.</h2>
+      <p class="statement">Autonomous systems may act.<br>Authority must be explicit, bounded, and verifiable.</p>
+      <div class="finalbtns">
+        <a class="btn primary" href="https://arachnode.onrender.com" target="_blank" rel="noopener">Enter the Control Plane</a>
+        <button class="btn sub" id="replay2">Replay the incident</button>
+      </div>
+    </section>
+
+    <footer>
+      <div class="brand">ARACHNODE<span class="dot">.</span></div>
+      <div class="copyrow">
+        <span>arachnode.io</span><span style="color:var(--faint)">&middot;</span>
+        <span id="email">kuumba@arachnode.io</span>
+        <button class="copybtn" id="copyemail">Copy</button>
+      </div>
+      <div>&copy; 2026 ARACHNODE &mdash; Agent security control plane</div>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- content ---------- */
+var CAPS=[
+  {key:"identity",name:"Identity",cap:"Capability token validated.",core:true,
+   desc:"Verifies the actor and the exact privileges it may use. Shared agent credentials are rejected."},
+  {key:"policy",name:"Policy",cap:"Action authority evaluated.",core:true,
+   desc:"Checks whether this specific action, on this target, is inside the agent's granted authority."},
+  {key:"runtime",name:"Runtime",cap:"Behavior deviation monitored.",core:true,
+   desc:"Watches tool calls, prompts and behavior for drift from the declared task."},
+  {key:"deception",name:"Deception",cap:"Mirror corridor opened.",core:false,
+   desc:"Redirects suspicious sessions into the Eight Mirror Maze — synthetic environments where every move becomes telemetry."},
+  {key:"containment",name:"Containment",cap:"Trapdoor quarantine armed.",core:false,
+   desc:"Isolates a threat the instant it crosses a boundary, with Digital Twin ×8 capture of the actor."},
+  {key:"evidence",name:"Evidence",cap:"Signed event chain created.",core:false,
+   desc:"Writes a hash-linked, independently verifiable incident record. Actions stay attributable afterward."}
+];
+var PIPE=[
+  {n:"01",h:"Zero Trust",p:"Identifies who is acting and how trustworthy the device is."},
+  {n:"02",h:"Aegis-28",p:"Decides: allow, deny, or send it to a human. Runs the impact check."},
+  {n:"03",h:"ARACHNODE",p:"Enforces the decision. Can stop an action; never upgrades a deny to an allow."},
+  {n:"04",h:"Verifier",p:"Checks that what happened matches what was declared. Mismatch forces Safe-Hold."}
+];
+var PROOF=[
+  {big:"Runtime detection",lbl:"The web felt the intruder move along its strands."},
+  {big:"Identity + policy",lbl:"Nodes rejected the capability and flagged the intent."},
+  {big:"Deception routing",lbl:"The intruder followed a false path into a mirror corridor."},
+  {big:"Trapdoor quarantine",lbl:"The trap closed before a real asset was reached."},
+  {big:"Signed evidence",lbl:"The incident remains visible and verifiable afterward."},
+  {big:"Human authority",lbl:"Critical actions still wait for an explicit human key."}
+];
+(function(){
+  var g=document.getElementById("capgrid");
+  CAPS.forEach(function(c,i){var d=document.createElement("div");d.className="cap";
+    d.innerHTML='<div class="idx">0'+(i+1)+' &middot; '+c.name.toUpperCase()+' STRAND</div><h3>'+c.name+'</h3><p>'+c.desc+'</p>';g.appendChild(d);});
+  var p=document.getElementById("pipe");
+  PIPE.forEach(function(s){var d=document.createElement("div");d.className="stageit";
+    d.innerHTML='<div class="n">'+s.n+'</div><h4>'+s.h+'</h4><p>'+s.p+'</p>';p.appendChild(d);});
+  var pr=document.getElementById("proof");
+  PROOF.forEach(function(s){var d=document.createElement("div");
+    d.innerHTML='<div class="big">'+s.big+'</div><div class="lbl">'+s.lbl+'</div>';pr.appendChild(d);});
+})();
+document.getElementById("copyemail").addEventListener("click",function(){
+  var t="kuumba@arachnode.io",b=this;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy";},1500);}).catch(sel);
+  } else sel();
+  function sel(){var r=document.createRange();r.selectNodeContents(document.getElementById("email"));
+    var s=window.getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Selected";setTimeout(function(){b.textContent="Copy";},1500);}
+});
+
+/* ====================================================================
+   CANVAS 2D — gold web vortex with neon-purple glow (no libraries)
+   ==================================================================== */
+var GOLD="#e9b949",GOLDB="#f7d47a",PURP="#a24bff",PURPB="#c88dff",RED="#ff5566",SAFE="#43e0a0";
+var cv=document.getElementById("web"),ctx=cv.getContext("2d");
+var W=0,H=0,DPR=1,cx=0,cy=0,R=1,webTex=null,texSize=0;
+var spin=0, tsec=0, last=performance.now();
+var pointer={x:-9999,y:-9999,has:false}, par={x:0,y:0}, parT={x:0,y:0};
+var orbitY=0; /* fixed vortex center, just under the headline */
+function ORBIT_Y(){ return orbitY||H*0.58; }
+var secure={v:0}, flash={v:0};
+/* the original vortex film (user's own clip); the drawn gold web is the fallback */
+var vid=document.getElementById("vortexvid"), vc=document.createElement("canvas"), vctx=vc.getContext("2d");
+if(vid){ if(REDUCED){vid.removeAttribute("autoplay");vid.pause();}
+  else { var tryPlay=function(){var pr=vid.play();if(pr&&pr.catch)pr.catch(function(){});};
+    tryPlay(); document.addEventListener("pointerdown",tryPlay,{once:true}); } }
+var ARMS=14, APTS=90;
+
+var stageEl=document.getElementById("stage"), orbitEl=document.getElementById("orbit");
+var rect={left:0,top:0,bottom:1,right:1};
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=stageEl.clientWidth;H=stageEl.clientHeight;
+  cv.width=Math.floor(W*DPR);cv.height=Math.floor(H*DPR);
+  cv.style.width=W+"px";cv.style.height=H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  /* STATIONARY ORBIT in its own space: centred in the gap between the
+     headline block and the next content, sized to fill that gap. */
+  var oh=orbitEl.offsetHeight||H*0.6;
+  orbitY=orbitEl.offsetTop+oh/2;
+  R=Math.min(oh*0.47,W*0.46);
+  buildWebTex();
+}
+/* pre-render the static gold web (spiral arms + rings) with baked purple glow */
+function buildWebTex(){
+  texSize=Math.ceil(R*2.3);
+  webTex=document.createElement("canvas");
+  webTex.width=webTex.height=Math.floor(texSize*DPR);
+  var g=webTex.getContext("2d");
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.translate(texSize/2,texSize/2);
+  g.globalCompositeOperation="lighter";
+  g.lineCap="round";
+  var a,i,theta,r,ang,x,y,first;
+  /* spiral arms */
+  for(a=0;a<ARMS;a++){
+    var off=(a/ARMS)*Math.PI*2;
+    g.beginPath();first=true;
+    for(i=0;i<=APTS;i++){
+      var t=i/APTS;
+      theta=t*4.9*Math.PI;
+      r=0.055*R*Math.exp(0.205*theta);
+      if(r>R){r=R;}
+      ang=off+theta;
+      x=Math.cos(ang)*r;y=Math.sin(ang)*r;
+      if(first){g.moveTo(x,y);first=false;}else g.lineTo(x,y);
+    }
+    g.shadowColor=PURP;g.shadowBlur=16;
+    g.strokeStyle="rgba(233,185,73,0.55)";g.lineWidth=2.0;g.stroke();
+    /* bright gold core-line on top */
+    g.shadowBlur=6;g.strokeStyle="rgba(247,212,122,0.9)";g.lineWidth=0.9;g.stroke();
+  }
+  /* concentric web rings connecting the strands */
+  for(var rr=R*0.16;rr<=R;rr+=R*0.17){
+    g.beginPath();g.arc(0,0,rr,0,Math.PI*2);
+    g.shadowColor=PURP;g.shadowBlur=10;
+    g.strokeStyle="rgba(233,185,73,0.14)";g.lineWidth=1;g.stroke();
+  }
+}
+
+/* capability nodes at stable polar positions (do not rotate, easy to click) */
+var nodes=[];
+(function(){
+  var place=[[0.06,0.5],[0.26,0.66],[0.46,0.52],[0.65,0.68],[0.82,0.55],[0.96,0.70]];
+  CAPS.forEach(function(c,i){
+    nodes.push({data:c,core:c.core,af:place[i][0],rf:place[i][1],active:false,inf:0,x:0,y:0});
+  });
+})();
+function nodePos(n){ var ang=n.af*Math.PI*2, r=n.rf*R; n.x=cx+Math.cos(ang)*r; n.y=cy+Math.sin(ang)*r; }
+
+/* rogue agent + containment visuals */
+var threat={on:false,af:0.55,rf:1.2,x:0,y:0,trail:[]};
+var trap={on:false,r:0};
+var mirrors={on:false,a:0};
+
+/* tiny tween engine */
+var anims=[];
+function easeIO(p){return p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;}
+function tween(obj,to,dur,done){
+  if(REDUCED){Object.keys(to).forEach(function(k){obj[k]=to[k];});if(done)done();return;}
+  var from={},keys=Object.keys(to),t0=performance.now();
+  keys.forEach(function(k){from[k]=obj[k];});
+  anims.push({tick:function(now){var p=Math.min(1,(now-t0)/dur),e=easeIO(p);
+    keys.forEach(function(k){obj[k]=from[k]+(to[k]-from[k])*e;});return p>=1;},done:done});
+}
+
+function frame(now){
+  requestAnimationFrame(frame);
+  var dt=Math.min((now-last)/1000,0.05);last=now;tsec+=dt;
+  if(document.hidden) return;
+  /* process tweens */
+  for(var ai=anims.length-1;ai>=0;ai--){ if(anims[ai].tick(now)){var d=anims[ai].done;anims.splice(ai,1);if(d)d();} }
+
+  /* STATIONARY ORBIT: the vortex is pinned in place under the headline and
+     simply rotates on the spot — it does not drift with scroll or cursor. */
+  rect=cv.getBoundingClientRect();
+  if(rect.bottom<0||rect.top>window.innerHeight){tipEl.style.opacity=0;return;} /* hero scrolled away: rest */
+  spin+=dt*(REDUCED?0.0:0.26)*(FSM.state==="complete"?0.6:1);
+  cx=W/2;
+  cy=ORBIT_Y();            /* fixed point just under "...IS LISTENING." */
+
+  ctx.clearRect(0,0,W,H);
+  var useVid = vid && vid.readyState>=2 && vid.videoWidth>0;
+  if(useVid){
+    /* the original vortex film, feathered into a circle so its edges melt into the page */
+    var S=Math.ceil(R*2.35);
+    if(vc.width!==S){vc.width=vc.height=S;}
+    vctx.globalCompositeOperation="source-over";
+    vctx.clearRect(0,0,S,S);
+    vctx.drawImage(vid,0,0,S,S);
+    vctx.globalCompositeOperation="destination-in";
+    var m=vctx.createRadialGradient(S/2,S/2,S*0.30,S/2,S/2,S*0.5);
+    m.addColorStop(0,"rgba(0,0,0,1)");m.addColorStop(1,"rgba(0,0,0,0)");
+    vctx.fillStyle=m;vctx.fillRect(0,0,S,S);
+    ctx.save();
+    ctx.globalCompositeOperation="lighter";
+    ctx.globalAlpha=0.95+flash.v*0.05;
+    ctx.drawImage(vc,cx-S/2,cy-S/2,S,S);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.globalCompositeOperation="lighter";
+    ctx.translate(cx,cy);
+    ctx.rotate(spin);
+    ctx.globalAlpha=0.92+flash.v*0.08;
+    ctx.drawImage(webTex,-texSize/2,-texSize/2,texSize,texSize);
+    ctx.restore();
+  }
+
+  /* bright core (lives on top, pulses; softer over the film, which has its own heart) */
+  var coreR=(useVid?R*0.07:R*(0.14+Math.sin(tsec*1.6)*0.012))+flash.v*R*0.1;
+  var grd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
+  grd.addColorStop(0,"rgba(255,250,240,0.95)");
+  grd.addColorStop(0.3,"rgba(247,212,122,0.65)");
+  grd.addColorStop(0.65,"rgba(162,75,255,0.38)");
+  grd.addColorStop(1,"rgba(162,75,255,0)");
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx,cy,coreR,0,Math.PI*2);ctx.fill();ctx.restore();
+
+  /* mirror maze spokes */
+  if(mirrors.on){
+    ctx.save();ctx.globalCompositeOperation="lighter";ctx.translate(cx,cy);
+    for(var m=0;m<8;m++){var an=m/8*Math.PI*2+spin*0.5;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(an)*R*0.9,Math.sin(an)*R*0.9);
+      ctx.strokeStyle="rgba(200,141,255,"+(mirrors.a*0.6)+")";ctx.lineWidth=1.5;
+      ctx.shadowColor=PURP;ctx.shadowBlur=14;ctx.stroke();}
+    ctx.restore();
+  }
+  /* trapdoor ring */
+  if(trap.on&&trap.r>0.001){
+    ctx.save();ctx.globalCompositeOperation="lighter";
+    ctx.beginPath();ctx.arc(cx,cy,trap.r*R,0,Math.PI*2);
+    ctx.strokeStyle="rgba(247,212,122,0.9)";ctx.lineWidth=2.5;ctx.shadowColor=PURP;ctx.shadowBlur=22;ctx.stroke();
+    ctx.restore();
+  }
+
+  /* capability nodes */
+  var hovered=null,hd=1e9;
+  for(var i=0;i<nodes.length;i++){
+    var n=nodes[i];nodePos(n);
+    var d=pointer.has?Math.hypot(pointer.x-n.x,pointer.y-n.y):999;
+    var inf=Math.max(0,1-d/140);n.inf+=(inf-n.inf)*0.12;
+    var rad=7+n.inf*6+(n.active?4:0);
+    var pulse=n.active?(1+Math.sin(tsec*3+i)*0.12):1;
+    ctx.save();ctx.globalCompositeOperation="lighter";
+    // glow halo
+    var col=n.active?GOLDB:(FSM.canActivate()&&n.core?GOLD:"#9a7bff");
+    ctx.shadowColor=n.active?GOLD:PURP;ctx.shadowBlur=n.active?26:(12+n.inf*18);
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(n.x,n.y,rad*pulse,0,Math.PI*2);ctx.fill();
+    // ring for active / strongly hovered
+    if(n.active||n.inf>0.3){
+      ctx.beginPath();ctx.arc(n.x,n.y,(rad+7)*pulse,0,Math.PI*2);
+      ctx.strokeStyle=n.active?"rgba(200,141,255,0.9)":"rgba(200,141,255,"+(n.inf*0.7)+")";
+      ctx.lineWidth=1.5;ctx.shadowBlur=14;ctx.stroke();
+    }
+    ctx.restore();
+    if(n.inf>0.25&&d<hd){hd=d;hovered=n;}
+  }
+  updateTip(hovered);
+
+  /* rogue agent */
+  if(threat.on){
+    var ta=threat.af*Math.PI*2, tr=threat.rf*R;
+    threat.x=cx+Math.cos(ta)*tr;threat.y=cy+Math.sin(ta)*tr;
+    threat.trail.push({x:threat.x,y:threat.y});if(threat.trail.length>14)threat.trail.shift();
+    ctx.save();ctx.globalCompositeOperation="lighter";
+    for(var k=0;k<threat.trail.length;k++){var tp=threat.trail[k],al=k/threat.trail.length;
+      ctx.fillStyle="rgba(255,85,102,"+(al*0.5)+")";ctx.beginPath();ctx.arc(tp.x,tp.y,2+al*4,0,Math.PI*2);ctx.fill();}
+    ctx.shadowColor=RED;ctx.shadowBlur=24;ctx.fillStyle="#ff8a8a";
+    ctx.beginPath();ctx.arc(threat.x,threat.y,6,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* tooltip */
+var tipEl=document.getElementById("tip"),tipCur=null;
+function updateTip(n){
+  var ok=(FSM.state==="arrival"||FSM.state==="discovery"||FSM.state==="activation");
+  if(!n||!ok){tipEl.style.opacity=0;tipCur=null;return;}
+  tipEl.style.left=(rect.left+n.x)+"px";tipEl.style.top=(rect.top+n.y)+"px";tipEl.style.opacity=1;
+  if(tipCur!==n){tipCur=n;
+    tipEl.innerHTML="<b>"+n.data.name.toUpperCase()+" STRAND</b><span>"+n.data.cap+
+      (n.core&&FSM.canActivate()&&!n.active?"<br>&rsaquo; click to activate":"")+"</span>";}
+}
+
+/* input */
+window.addEventListener("pointermove",function(e){
+  var rc=cv.getBoundingClientRect();
+  pointer.x=e.clientX-rc.left;pointer.y=e.clientY-rc.top;
+  if(!pointer.has){pointer.has=true;FSM.firstContact();}
+},{passive:true});
+window.addEventListener("pointerdown",function(e){
+  if(e.target.closest("a,button,.copybtn")) return;
+  if(!FSM.canActivate()) return;
+  var rc=cv.getBoundingClientRect();
+  var px=e.clientX-rc.left,py=e.clientY-rc.top,best=null,bd=40;
+  for(var i=0;i<nodes.length;i++){var n=nodes[i];if(!n.core||n.active)continue;
+    var d=Math.hypot(px-n.x,py-n.y);if(d<bd){bd=d;best=n;}}
+  if(best)FSM.activate(best);
+},{passive:true});
+window.addEventListener("resize",resize);
+if(window.ResizeObserver){new ResizeObserver(function(){if(stageEl.clientHeight!==H||stageEl.clientWidth!==W)resize();}).observe(stageEl);}
+function bring(el,block){try{el.scrollIntoView({block:block||"nearest",behavior:REDUCED?"auto":"smooth"});}catch(e){}}
+
+/* ====================================================================
+   STATE MACHINE — the interactive loop
+   ==================================================================== */
+var statusEl=document.getElementById("statustext"),instrEl=document.getElementById("instruction"),
+    hintEl=document.getElementById("hint"),slot=document.getElementById("slot"),
+    heroEm=document.querySelector("h1.hero em"),heroLead=document.querySelector("h1.hero");
+function setStatus(s){statusEl.textContent=s;}
+function setInstr(s){instrEl.style.opacity=0;setTimeout(function(){instrEl.textContent=s;instrEl.style.opacity=1;},160);}
+function clearSlot(){slot.innerHTML="";}
+
+var FSM={
+  state:"arrival",count:0,idle:null,
+  go:function(s){this.state=s;document.body.dataset.state=s;this.resetIdle();},
+  resetIdle:function(){clearTimeout(this.idle);if(REDUCED)return;var self=this;
+    this.idle=setTimeout(function(){if(self.state==="discovery"||self.state==="activation")setInstr("TRACE THE SIGNAL — wake a glowing node.");},15000);},
+  firstContact:function(){if(this.state!=="arrival")return;
+    setStatus("SYSTEM: SIGNAL DETECTED");this.go("discovery");
+    setInstr("Three core nodes are waking. Activate them in order.");
+    hintEl.textContent="Hover a node to read its role · click the glowing ones to arm the web";},
+  canActivate:function(){return this.state==="discovery"||this.state==="activation";},
+  activate:function(n){
+    n.active=true;this.go("activation");this.count++;
+    flash.v=1;tween(flash,{v:0},600);
+    var prog=["SYSTEM: IDENTITY CONFIRMED","SYSTEM: POLICY BOUNDARY ACTIVE","SYSTEM: RUNTIME CONTAINMENT READY"];
+    setStatus(prog[Math.min(this.count-1,2)]);
+    setInstr(n.data.name.toUpperCase()+" strand active — "+n.data.cap);
+    if(this.count>=3)this.arm();
+  },
+  arm:function(){this.go("armed");setStatus("SYSTEM: DEFENSIVE WEB ARMED");
+    setInstr("The web is armed. Something is approaching the perimeter…");hintEl.textContent="";
+    bring(orbitEl,"center");
+    setTimeout(intrusion,1300);}
+};
+
+function intrusion(){
+  FSM.go("intrusion");setStatus("SYSTEM: UNVERIFIED AGENT DETECTED");
+  heroEm.textContent="UNDER THREAT.";heroLead.firstChild.textContent="THE DEFENSIVE WEB";
+  setInstr("UNVERIFIED AGENT — origin: external tool chain · intent: privilege escalation · confidence 87%");
+  threat.on=true;threat.trail=[];threat.af=0.55;threat.rf=1.25;
+  var path=[{af:0.42,rf:0.9},{af:0.3,rf:0.62},{af:0.18,rf:0.42},{af:0.08,rf:0.26}];
+  function step(i){ if(i>=path.length){decision();return;} tween(threat,{af:path[i].af,rf:path[i].rf},i===0?900:1000,function(){step(i+1);}); }
+  step(0);
+}
+function decision(){
+  FSM.go("decision");setStatus("SYSTEM: THREAT AT POLICY BOUNDARY");
+  setInstr("THREAT AT POLICY BOUNDARY — select a quarantine path.");
+  clearSlot();var wrap=document.createElement("div");wrap.className="choices";
+  [{t:"Deploy Trapdoor Quarantine",opt:true},{t:"Standard isolation",opt:false},{t:"Rate-limit the session",opt:false}]
+  .forEach(function(o){var b=document.createElement("button");b.className="btn"+(o.opt?" primary":" sub");b.textContent=o.t;
+    b.addEventListener("click",function(){contain(o.opt);});wrap.appendChild(b);});
+  slot.appendChild(wrap);
+  bring(slot,"nearest");
+}
+function contain(optimal){
+  FSM.go("containment");clearSlot();
+  setStatus(optimal?"SYSTEM: TRAPDOOR DEPLOYED":"SYSTEM: CONTAINING");
+  setInstr(optimal?"Web contracting — Eight Mirror Maze engaged.":"Containing through a slower path…");
+  mirrors.on=true;mirrors.a=0;tween(mirrors,{a:1},500);
+  trap.on=true;trap.r=0.02;
+  tween(threat,{af:0.25,rf:0.5},500,function(){
+    tween(threat,{af:0.05,rf:0.04},700);
+    tween(trap,{r:1.05},800,function(){
+      threat.on=false;flash.v=1;tween(flash,{v:0},700);
+      tween(trap,{r:0},500);tween(mirrors,{a:0.15},600);tween(secure,{v:1},800,evidence);
+    });
+  });
+}
+function evidence(){
+  FSM.go("evidence");setStatus("SYSTEM: THREAT CONTAINED");heroEm.textContent="SECURED.";
+  setInstr("Incident contained. Signed evidence recorded.");clearSlot();
+  var box=document.createElement("div");box.className="incident";
+  box.innerHTML='<h4>INCIDENT #A-'+(1000+Math.floor(Math.random()*8999))+'</h4>';
+  [["Actor","Unverified agent"],["Action","Privilege escalation"],["Decision","Contained"],
+   ["Route","Deception mirror 0"+(1+Math.floor(Math.random()*8))],["Evidence","Signed event chain created"]]
+  .forEach(function(r){var d=document.createElement("div");d.className="row";
+    d.innerHTML="<span>"+r[0]+"</span><span>"+r[1]+"</span>";box.appendChild(d);});
+  slot.appendChild(box);
+  bring(slot,"nearest");
+  var rows=box.querySelectorAll(".row");
+  rows.forEach(function(el,i){setTimeout(function(){el.classList.add("in");},REDUCED?0:240*(i+1));});
+  setTimeout(complete,REDUCED?300:240*rows.length+700);
+}
+function complete(){
+  FSM.go("complete");setStatus("SYSTEM: OPERATOR RECOGNIZED");
+  setInstr("Autonomous systems may act. Authority must be explicit, bounded, and verifiable.");clearSlot();
+  var wrap=document.createElement("div");wrap.className="choices";
+  var a=document.createElement("a");a.className="btn primary";a.href="https://arachnode.onrender.com";a.target="_blank";a.rel="noopener";a.textContent="Enter the Control Plane";
+  var r=document.createElement("button");r.className="btn sub";r.textContent="Replay the incident";r.addEventListener("click",resetLoop);
+  wrap.appendChild(a);wrap.appendChild(r);slot.appendChild(wrap);
+  try{localStorage.setItem("arachnode-complete","true");}catch(e){}
+}
+function resetLoop(){
+  nodes.forEach(function(n){n.active=false;n.inf=0;});
+  FSM.count=0;secure.v=0;mirrors.on=false;mirrors.a=0;trap.on=false;trap.r=0;threat.on=false;threat.trail=[];
+  heroEm.textContent="LISTENING.";heroLead.firstChild.textContent="THE DEFENSIVE WEB";clearSlot();
+  FSM.go("discovery");setStatus("SYSTEM: SIGNAL DETECTED");
+  setInstr("Re-arming. Activate the three core nodes again.");
+  hintEl.textContent="Hover a node to read its role · click the glowing ones";
+  window.scrollTo({top:0,behavior:REDUCED?"auto":"smooth"});
+}
+document.getElementById("replay2").addEventListener("click",function(){window.scrollTo({top:0,behavior:REDUCED?"auto":"smooth"});resetLoop();});
+try{if(localStorage.getItem("arachnode-complete")==="true")setStatus("SYSTEM: OPERATOR RECOGNIZED");}catch(e){}
+
+/* boot */
+resize();requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
