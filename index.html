@@ -1,7 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ARACHNODE</title>
-<meta name="description" content="The defensive web for AI agents.">
+<meta name="description" content="ARACHNODE: the defensive web for AI agents. Live demo, theme song and the story behind it.">
+<meta property="og:title" content="ARACHNODE: the defensive web for AI agents">
+<meta property="og:description" content="Catches scams like flies. Freezes the trouble. Never deletes. Try the live demo.">
+<meta property="og:image" content="https://arachnode.io/theme-poster.jpg">
+<meta property="og:url" content="https://arachnode.io/">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 /* Layout: a fixed gold-web / neon-purple vortex canvas behind a scrolling column.
    Committed single dark world. No external libraries — the vortex is Canvas 2D. */
@@ -149,6 +154,35 @@ footer a:hover{color:var(--gold-bright)}
   border-radius:6px;padding:4px 9px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em}
 .copybtn:hover{border-color:var(--gold);color:var(--gold-bright)}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* ---------- added Oct 2026: theme song, live demo, origin story ---------- */
+.navlinks{display:flex;gap:18px;font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.navlinks a{color:var(--muted);text-decoration:none}
+.navlinks a:hover{color:var(--gold-bright)}
+@media(max-width:1000px){.navlinks{display:none}}
+.song{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:center;margin-top:44px}
+@media(max-width:760px){.song{grid-template-columns:1fr}}
+.songvid{width:100%;max-width:340px;aspect-ratio:9/16;border-radius:16px;border:1px solid var(--line);
+  background:#000;box-shadow:0 0 60px rgba(233,185,73,.18);display:block;margin:0 auto}
+.songinfo h3{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.4vw,2.2rem);margin:0;color:var(--gold-bright);letter-spacing:.02em}
+.songinfo .credit{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--faint);margin:10px 0 22px}
+.songinfo audio{width:100%;max-width:520px;margin:6px 0 26px;filter:sepia(.3) saturate(1.3)}
+.lyric{font-family:var(--f-display);font-size:clamp(1rem,2vw,1.2rem);line-height:1.75;color:var(--fg);
+  border-left:2px solid var(--gold);padding:6px 0 6px 20px;margin:0;max-width:52ch}
+.lyric .call{color:var(--purple-bright)}
+.demos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:44px}
+.democard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 26px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.democard .idx{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;color:var(--gold)}
+.democard h3{font-family:var(--f-display);font-weight:600;font-size:1.3rem;margin:0}
+.democard p{font-size:.95rem;line-height:1.6;color:var(--muted);margin:0;flex:1}
+.democard .btn{align-self:flex-start;text-decoration:none;display:inline-block}
+.note{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;color:var(--faint);margin-top:22px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:28px;margin:44px 0 10px}
+.stats .big{font-family:var(--f-display);font-weight:700;font-size:clamp(2.2rem,5vw,3.4rem);color:var(--gold-bright);line-height:1}
+.stats .lbl{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);margin-top:10px;line-height:1.5}
+.pull{font-family:var(--f-display);font-size:clamp(1.2rem,2.6vw,1.6rem);line-height:1.45;color:var(--fg);
+  margin:40px 0;padding:22px 26px;border-left:2px solid var(--purple);background:rgba(162,75,255,.07);border-radius:0 12px 12px 0;max-width:62ch}
+.sig{font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;color:var(--gold);margin-top:30px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,6 +196,7 @@ footer a:hover{color:var(--gold-bright)}
   <header class="nav">
     <div class="brand">ARACHNODE<span class="dot">.</span></div>
     <div class="navright">
+      <nav class="navlinks"><a href="#song">Theme song</a><a href="#demo">Live demo</a><a href="#story">Our story</a></nav>
       <div class="chip"><span class="pip"></span><span id="statustext">SYSTEM: DORMANT</span></div>
       <a class="enter long" href="https://arachnode.onrender.com" target="_blank" rel="noopener">Enter the Control Plane</a>
     </div>
@@ -187,6 +222,29 @@ footer a:hover{color:var(--gold-bright)}
       <p class="body" style="margin-top:28px">The metaphor is literal. You are the spider; your web <em>is</em> the control plane. Each strand is a governed connection. A vibration on the strand is telemetry. When a rogue agent touches the web, the whole structure feels it &mdash; it is lured down a false strand, and the trapdoor closes over it.</p>
     </section>
 
+    <section class="band" id="song">
+      <p class="kicker">The theme song</p>
+      <h2>Eight eyes on the line. <em>Turn it up.</em></h2>
+      <p class="lead">ARACHNODE has its own anthem. It tells the story the product lives by: catch the scam, freeze the trouble, and never delete what matters.</p>
+      <div class="song">
+        <video class="songvid" controls playsinline preload="none" poster="theme-poster.jpg">
+          <source src="theme-teaser.mp4" type="video/mp4">
+        </video>
+        <div class="songinfo">
+          <h3>&ldquo;Eight Eyes on the Line&rdquo;</h3>
+          <p class="credit">The ARACHNODE Theme &middot; words by Kuumba Williams &middot; full song 3:45</p>
+          <audio controls preload="none" src="theme.mp3">Your browser cannot play this audio.</audio>
+          <p class="lyric">ARACHNODE! <span class="call">(Eight eyes on the line!)</span><br>
+          Spinnin&rsquo; silk around your peace of mind!<br>
+          It catches scams like flies, it holds &rsquo;em tight,<br>
+          Freezes the trouble, keeps your files hidden, out of sight!<br>
+          Nothin&rsquo; gets deleted, nothin&rsquo; gets lost,<br>
+          Just the trapdoor closin&rsquo; on the scammer&rsquo;s cost!</p>
+        </div>
+      </div>
+    </section>
+
+
     <section class="band">
       <p class="kicker">Capabilities</p>
       <h2>Six strands, one control plane.</h2>
@@ -207,12 +265,52 @@ footer a:hover{color:var(--gold-bright)}
       <div class="proof" id="proof"></div>
     </section>
 
+
+    <section class="band" id="demo">
+      <p class="kicker">Live demo</p>
+      <h2>Don&rsquo;t take our word for it. <em>Run it.</em></h2>
+      <p class="lead">ARACHNODE is not a slide deck. It is deployed and running right now. No sales call, no sign-up form.</p>
+      <div class="demos">
+        <div class="democard">
+          <span class="idx">01 &middot; AGENT SECURITY GATEWAY</span>
+          <h3>Watch the web decide</h3>
+          <p>Send an AI agent&rsquo;s action through the Gateway and see one of five real-time decisions: Allow, Block, Require Approval, Capture or Quarantine. Suspicious agents are led into the Mirror Maze, and the trapdoor closes behind them.</p>
+          <a class="btn primary" href="https://arachnode-gateway.onrender.com/demo" target="_blank" rel="noopener">Try the live Gateway</a>
+        </div>
+        <div class="democard">
+          <span class="idx">02 &middot; CONTROL PLANE</span>
+          <h3>Signed policy, sealed record</h3>
+          <p>The policy engine and console: signed policies that detect tampering, a hash-linked audit chain, a quarantine registry, and Discernment Key gates that keep a human in charge.</p>
+          <a class="btn primary" href="https://arachnode.onrender.com" target="_blank" rel="noopener">Enter the Control Plane</a>
+        </div>
+      </div>
+      <p class="note">The demos run on free cloud servers that sleep when nobody is using them. If a page is slow, give it about a minute to wake up, then refresh.</p>
+    </section>
+
+    <section class="band" id="story">
+      <p class="kicker">Our story</p>
+      <h2>Built at 72, by a retired <em>food scientist.</em></h2>
+      <div class="stats">
+        <div><div class="big">72</div><div class="lbl">years old, retired, when the first sketch was drawn</div></div>
+        <div><div class="big">~2 months</div><div class="lbl">from first sketch to a live, deployed product</div></div>
+        <div><div class="big">109</div><div class="lbl">automated tests passing in the live Gateway</div></div>
+      </div>
+      <p class="lead">Most security products are born inside security companies. ARACHNODE was born somewhere else: in the mind of a retired nutraceutical food scientist who spent his first career learning how to keep dangerous things out of the food supply.</p>
+      <p class="body" style="margin-top:24px">From 1996 to 1997 he worked at Rutgers University&rsquo;s Center for Advanced Food Technology (CAFT). Food science teaches a particular kind of vigilance: you assume something harmful will eventually get in. You don&rsquo;t only build walls; you build <em>detection, containment and traceability.</em> When a contaminant appears, you isolate the batch, study it, record every step, and protect everything downstream.</p>
+      <p class="body">In the late summer of 2026 he turned that same thinking on the newest danger of all: AI agents that no longer just answer questions, but take real actions inside real systems.</p>
+      <div class="pull">What if, instead of just shutting the door on a suspicious agent, a system could quietly capture it, learn what it was after, and then trap it, while the real system stays untouched?</div>
+      <p class="body">That question became ARACHNODE. A spider doesn&rsquo;t chase its prey; it builds a structure that senses disturbance, holds what enters, and waits. The Web is the Gateway. The Eight Eyes are the Mirror Maze. The Trapdoor is quarantine. And the Master Discernment Key keeps a human in charge.</p>
+      <p class="body">Age did not slow this work down. <em>Experience shaped it.</em></p>
+      <p class="sig">&mdash; Bruce Derrick &ldquo;Kuumba&rdquo; Williams, Founder</p>
+    </section>
+
     <section class="band final">
       <p class="kicker" style="text-align:center">Enter the control plane</p>
       <h2>Authority, made explicit.</h2>
       <p class="statement">Autonomous systems may act.<br>Authority must be explicit, bounded, and verifiable.</p>
       <div class="finalbtns">
         <a class="btn primary" href="https://arachnode.onrender.com" target="_blank" rel="noopener">Enter the Control Plane</a>
+        <a class="btn" href="https://arachnode-gateway.onrender.com/demo" target="_blank" rel="noopener">Try the live Gateway</a>
         <button class="btn sub" id="replay2">Replay the incident</button>
       </div>
     </section>
