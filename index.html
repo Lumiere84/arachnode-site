@@ -139,6 +139,14 @@ p.body em{font-style:normal;color:var(--gold-bright)}
 .proof .big{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.2vw,2.1rem);color:var(--gold-bright)}
 .proof .lbl{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);margin-top:8px;line-height:1.5}
 
+#family{padding-top:0;padding-bottom:clamp(40px,7vh,80px)}
+.familycard{display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;
+  border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:clamp(22px,4vw,36px)}
+.familycard>div{flex:1 1 420px}
+.familycard .kicker{margin-bottom:10px}
+.familyh{font-family:var(--f-display);font-size:clamp(1.4rem,3vw,2rem);margin:0 0 12px;color:var(--fg)}
+.familyh em{color:var(--gold-bright);font-style:normal}
+.familycard .btn{text-decoration:none;display:inline-block;white-space:nowrap}
 .final{text-align:center}
 .final h2{font-size:clamp(1.9rem,4.6vw,3.2rem)}
 .final .statement{font-family:var(--f-mono);letter-spacing:.08em;color:var(--purple-bright);
@@ -293,7 +301,7 @@ footer a:hover{color:var(--gold-bright)}
       <div class="stats">
         <div><div class="big">72</div><div class="lbl">years old, retired, when the first sketch was drawn</div></div>
         <div><div class="big">~2 months</div><div class="lbl">from first sketch to a live, deployed product</div></div>
-        <div><div class="big">109</div><div class="lbl">automated tests passing in the live Gateway</div></div>
+        <div><div class="big">467</div><div class="lbl">automated tests passing in the live Gateway</div></div>
       </div>
       <p class="lead">Most security products are born inside security companies. ARACHNODE was born somewhere else: in the mind of a retired nutraceutical food scientist who spent his first career learning how to keep dangerous things out of the food supply.</p>
       <p class="body" style="margin-top:24px">From 1996 to 1997 he worked at Rutgers University&rsquo;s Center for Advanced Food Technology (CAFT). Food science teaches a particular kind of vigilance: you assume something harmful will eventually get in. You don&rsquo;t only build walls; you build <em>detection, containment and traceability.</em> When a contaminant appears, you isolate the batch, study it, record every step, and protect everything downstream.</p>
@@ -302,6 +310,17 @@ footer a:hover{color:var(--gold-bright)}
       <p class="body">That question became ARACHNODE. A spider doesn&rsquo;t chase its prey; it builds a structure that senses disturbance, holds what enters, and waits. The Web is the Gateway. The Eight Eyes are the Mirror Maze. The Trapdoor is quarantine. And the Master Discernment Key keeps a human in charge.</p>
       <p class="body">Age did not slow this work down. <em>Experience shaped it.</em></p>
       <p class="sig">&mdash; Bruce Derrick &ldquo;Kuumba&rdquo; Williams, Founder</p>
+    </section>
+
+    <section class="band" id="family" aria-labelledby="family-title">
+      <div class="familycard">
+        <div>
+          <p class="kicker">Also from the founder</p>
+          <h3 id="family-title" class="familyh">The same discipline, <em>for your family.</em></h3>
+          <p class="body" style="margin:0">ARACHNODE checks what AI agents do before they act. <strong>ScamProof Home</strong> teaches families the same habit against AI voice clones, deepfakes and modern scams: <em>check before you trust.</em> Free printable toolkit, plain-English courses.</p>
+        </div>
+        <a class="btn" href="https://lumiere84.github.io/scamproof-home/" target="_blank" rel="noopener">Visit ScamProof Home</a>
+      </div>
     </section>
 
     <section class="band final">
